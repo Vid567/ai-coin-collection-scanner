@@ -1,6 +1,6 @@
 // Nederlandse presentatielaag voor Browser Beta v1.8.
-// De onderliggende scanner-, detectie-, opslag- en referentielogica blijft identiek aan de EN-versie.
-import './coin.js';
+// Scanner-, detectie-, opslag- en referentielogica wordt gedeeld met de EN-versie.
+import './coin-batch02.js';
 
 const exact = new Map(Object.entries({
   'Duplicate':'Dupliceren','Delete':'Verwijderen','Check public reference':'Controleer openbare referentie',
@@ -31,32 +31,10 @@ function translateNode(root=document){
     if(el.childElementCount===0){const t=el.textContent;const tr=translateExact(t);if(tr!==t)el.textContent=tr;}
   });
   root.querySelectorAll?.('select').forEach(sel=>[...sel.options].forEach(opt=>{const tr=translateExact(opt.textContent);if(tr!==opt.textContent)opt.textContent=tr;}));
-
-  const pc=document.querySelector('#photo-count');
-  if(pc){pc.textContent=pc.textContent.replace(/source photos?/,'bronfoto').replace(/bronfoto(?!'s)/g,"bronfoto's").replace(/crops?/,'uitsneden');}
-  const rc=document.querySelector('#row-count');
-  if(rc){rc.textContent=rc.textContent.replace(/coin$/,'munt').replace(/coins$/,'munten');}
-  const ds=document.querySelector('#detection-summary');
-  if(ds){ds.textContent=ds.textContent
-    .replace('No automatic detection run yet.','Nog geen automatische detectie uitgevoerd.')
-    .replace(/Front:/g,'Voorzijde:').replace(/Back:/g,'Achterzijde:')
-    .replace(/detected crops?/g,'gedetecteerde uitsneden');}
-  const st=document.querySelector('#reference-db-status');
-  if(st&&st.textContent.startsWith('Curated starter database:')){
-    st.textContent=st.textContent
-      .replace('Curated starter database:','Samengestelde startdatabase:')
-      .replace('reference types across','referentietypen uit')
-      .replace('issuing areas, including','uitgevende gebieden, waaronder')
-      .replace('Netherlands references.','Nederlandse referenties.');
-  }
+  const pc=document.querySelector('#photo-count');if(pc)pc.textContent=pc.textContent.replace(/source photos?/,'bronfoto').replace(/bronfoto(?!'s)/g,"bronfoto's").replace(/crops?/,'uitsneden');
+  const rc=document.querySelector('#row-count');if(rc)rc.textContent=rc.textContent.replace(/coin$/,'munt').replace(/coins$/,'munten');
+  const ds=document.querySelector('#detection-summary');if(ds)ds.textContent=ds.textContent.replace('No automatic detection run yet.','Nog geen automatische detectie uitgevoerd.').replace(/Front:/g,'Voorzijde:').replace(/Back:/g,'Achterzijde:').replace(/detected crops?/g,'gedetecteerde uitsneden');
+  const st=document.querySelector('#reference-db-status');if(st&&st.textContent.startsWith('Curated starter database:'))st.textContent=st.textContent.replace('Curated starter database:','Samengestelde startdatabase:').replace('reference types across','referentietypen uit').replace('issuing areas, including','uitgevende gebieden, waaronder').replace('Netherlands references.','Nederlandse referenties.');
 }
-
-const observer=new MutationObserver(mutations=>{
-  observer.disconnect();
-  for(const m of mutations){for(const n of m.addedNodes){if(n.nodeType===1)translateNode(n);}}
-  translateNode(document);
-  observer.observe(document.body,{childList:true,subtree:true});
-});
-
-translateNode(document);
-observer.observe(document.body,{childList:true,subtree:true});
+const observer=new MutationObserver(mutations=>{observer.disconnect();for(const m of mutations){for(const n of m.addedNodes){if(n.nodeType===1)translateNode(n);}}translateNode(document);observer.observe(document.body,{childList:true,subtree:true});});
+translateNode(document);observer.observe(document.body,{childList:true,subtree:true});
