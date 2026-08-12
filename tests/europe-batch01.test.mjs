@@ -7,6 +7,7 @@ const expectedCountries = [
 ];
 
 const allowedPriority = new Set(['Normal','Possibly interesting','Interesting']);
+const requiredMetadata = ['country','currency','denomination','type','authority','source','researchPriority'];
 
 assert.equal(EUROPE_BATCH01.length, 10);
 assert.deepEqual(EUROPE_BATCH01.map(x => x.country), expectedCountries);
@@ -25,8 +26,15 @@ for (const country of EUROPE_BATCH01) {
   assert.ok(rows.some(row => row.type === 'Historical'), `${country.country}: historical fallback missing`);
 
   for (const row of rows) {
-    assert.ok(row.authority && row.source, `${country.country}: row without official source`);
+    for (const field of requiredMetadata) {
+      assert.ok(row[field] !== undefined && row[field] !== '', `${country.country}: missing ${field}`);
+    }
+
     assert.ok(allowedPriority.has(row.researchPriority), `${country.country}: invalid research priority`);
+
+    if (row.type === 'Regular circulation') {
+      assert.ok(row.denomination, `${country.country}: regular coin without denomination`);
+    }
   }
 
   const regular = rows.filter(row => row.type === 'Regular circulation');
