@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {verifyPublicReference,researchSourcesFor,referenceRows,referenceStats} from '../beta/public-reference.mjs';
+const dutch=verifyPublicReference({country:'Netherlands',currency:'Euro',denomination:'2 euro',year:'2013',referenceClues:'Beatrix Willem Alexander'});
+assert.equal(dutch.matched,true);assert.equal(dutch.researchPriority,'Interesting');assert.match(dutch.source,/europa\.eu/);
+const common=verifyPublicReference({country:'Netherlands',currency:'Guilder',denomination:'10 cent',year:'1975',referenceClues:'Juliana'});
+assert.equal(common.matched,true);assert.equal(common.researchPriority,'Normal');
+const silver=verifyPublicReference({country:'United States',currency:'US Dollar',denomination:'10 cents',year:'1964'});
+assert.equal(silver.matched,true);assert.equal(silver.researchPriority,'Interesting');
+const sources=researchSourcesFor('United Kingdom','Pound sterling');assert.ok(sources.length>=1);assert.match(sources[0].url,/royalmint/);
+const nlSources=researchSourcesFor('Netherlands','Guilder');assert.ok(nlSources.length>=1);assert.match(nlSources[0].url,/knm\.nl/);
+const stats=referenceStats();assert.ok(stats.entries>=30);assert.ok(stats.countries>=8);assert.ok(stats.netherlands>=15);
+assert.equal(referenceRows().length,stats.entries);
+console.log(`reference tests passed: ${stats.entries} reference types, ${stats.countries} countries, ${stats.netherlands} Netherlands references`);

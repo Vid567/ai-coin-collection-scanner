@@ -2,7 +2,7 @@ export const INVENTORY_FIELDS = [
   'Coin ID','Obverse Photo Number','Obverse Filename','Reverse Photo Number','Reverse Filename','Edge Photo Number','Edge Filename',
   'Country / Issuing Authority','Year','Approximate Period','Denomination','Currency','Mint Mark','Metal / Possible Composition',
   'Diameter (mm)','Weight (g)','Condition','Obverse Design','Reverse Design','Edge Description','Quantity','Confidence',
-  'Coin Type','Public Reference Match','Reference Authority','Public Reference Source','Research Priority','Research Reason','Further Research','Collector Notes','Information Status'
+  'Coin Type','Public Reference Match','Reference Authority','Public Reference Source','Research Priority','Research Reason','Further Research','Research Source 1','Research Source 2','Research Source 3','Collector Notes','Information Status'
 ];
 
 export function photoNumber(index){return `Photo ${String(index+1).padStart(3,'0')}`;}
@@ -20,7 +20,7 @@ export function createRecord(records=[], obversePhotoId='', reversePhotoId='', e
   return {
     id:nextCoinId(records), obversePhotoId, reversePhotoId, edgePhotoId,
     country:'Unknown',year:'',period:'Unknown',denomination:'',currency:'',mintMark:'',metal:'',diameter:'',weight:'',condition:'Uncertain',
-    obverseDesign:'',reverseDesign:'',edgeDescription:'',referenceClues:'',coinType:'',referenceMatch:'Not checked',referenceAuthority:'',referenceSource:'',researchPriority:'Normal',researchReason:'',quantity:1,confidence:'Needs review',furtherResearch:'No',notes:'',
+    obverseDesign:'',reverseDesign:'',edgeDescription:'',referenceClues:'',coinType:'',referenceMatch:'Not checked',referenceAuthority:'',referenceSource:'',researchPriority:'Normal',researchReason:'',researchSource1:'',researchSource2:'',researchSource3:'',quantity:1,confidence:'Needs review',furtherResearch:'No',notes:'',
     status:'AI not connected — manual review'
   };
 }
@@ -36,7 +36,7 @@ export function exportRows(records,photos){return records.map(record=>{
     'Diameter (mm)':record.diameter,'Weight (g)':record.weight,'Condition':record.condition,'Obverse Design':record.obverseDesign,'Reverse Design':record.reverseDesign,
     'Edge Description':record.edgeDescription,'Quantity':Number(record.quantity)||1,'Confidence':record.confidence,'Coin Type':record.coinType||'',
     'Public Reference Match':record.referenceMatch||'Not checked','Reference Authority':record.referenceAuthority||'','Public Reference Source':record.referenceSource||'','Research Priority':record.researchPriority||'Normal','Research Reason':record.researchReason||'',
-    'Further Research':record.furtherResearch,'Collector Notes':record.notes,'Information Status':record.status
+    'Further Research':record.furtherResearch,'Research Source 1':record.researchSource1||'','Research Source 2':record.researchSource2||'','Research Source 3':record.researchSource3||'','Collector Notes':record.notes,'Information Status':record.status
   };
 });}
 export function csvEscape(value){return `"${String(value??'').replaceAll('"','""')}"`;}
