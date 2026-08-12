@@ -208,9 +208,25 @@ function enrich(card, database, aliases, label) {
 }
 
 function enrichBatch01(card) {
-  for (const country of batch01ByCountry.values()) {
-    enrich(card, country.database, country.aliases, country.authority);
-  }
+  if (!card || isEuro(card)) return;
+
+  const cardCountry = norm(value(card, 'country'));
+  const cardCurrency = norm(value(card, 'currency'));
+
+  const candidates = [...batch01ByCountry.values()].filter(country => {
+    const countryMatches = cardCountry && country.aliases.some(alias => cardCountry.includes(norm(alias)));
+    const currencyMatches = cardCurrency && (
+      cardCurrency === norm(country.currency) ||
+      norm(country.currency).includes(cardCurrency) ||
+      cardCurrency.includes(norm(country.currency))
+    );
+    return countryMatches || currencyMatches;
+  });
+
+  if (candidates.length !== 1) return;
+
+  const country = candidates[0];
+  enrich(card, country.database, country.aliases, country.authority);
 }
 
 document.querySelector('#records')?.addEventListener('click', event => {
