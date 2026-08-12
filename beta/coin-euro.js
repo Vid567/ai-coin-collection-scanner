@@ -1,7 +1,345 @@
 import './coin.js';
-import {EURO_REFERENCE_DB,euroReferenceRows} from './euro-reference.mjs';import {EURO_SERIES_REFERENCE_DB,euroSeriesRows} from './euro-series-reference.mjs';import {classifyEuroTwo,euroCommemorativeRows} from './euro-commemorative-reference.mjs';import {GERMANY_HISTORICAL_REFERENCE_DB,germanyHistoricalRows} from './europe-historical-germany.mjs';import {GERMANY_5DM_COMM} from './germany-5dm-commemoratives.mjs';import {GERMANY_10DM_COMM} from './germany-10dm-commemoratives.mjs';import {GERMANY_DDR_REFERENCE_DB,germanyDdrRows} from './germany-ddr-reference.mjs';import {IRELAND_HISTORICAL_REFERENCE_DB,irelandHistoricalRows} from './europe-historical-ireland.mjs';import {NETHERLANDS_HISTORICAL_REFERENCE_DB,netherlandsHistoricalRows,netherlandsHistoricalStats} from './europe-historical-netherlands.mjs';import {BELGIUM_HISTORICAL_REFERENCE_DB,belgiumHistoricalRows,belgiumHistoricalStats} from './europe-historical-belgium.mjs';import {FRANCE_HISTORICAL_REFERENCE_DB,franceHistoricalRows,franceHistoricalStats} from './europe-historical-france.mjs';import {SPAIN_HISTORICAL_REFERENCE_DB,spainHistoricalRows,spainHistoricalStats} from './europe-historical-spain.mjs';import {ITALY_HISTORICAL_REFERENCE_DB,italyHistoricalRows,italyHistoricalStats} from './europe-historical-italy.mjs';import {AUSTRIA_HISTORICAL_REFERENCE_DB,austriaHistoricalRows,austriaHistoricalStats} from './europe-historical-austria.mjs';import {PORTUGAL_HISTORICAL_REFERENCE_DB,portugalHistoricalRows,portugalHistoricalStats} from './europe-historical-portugal.mjs';import {GREECE_HISTORICAL_REFERENCE_DB,greeceHistoricalRows,greeceHistoricalStats} from './europe-historical-greece.mjs';import {FINLAND_HISTORICAL_REFERENCE_DB,finlandHistoricalRows,finlandHistoricalStats} from './europe-historical-finland.mjs';import {LUXEMBOURG_HISTORICAL_REFERENCE_DB,luxembourgHistoricalRows,luxembourgHistoricalStats} from './europe-historical-luxembourg.mjs';import {SLOVENIA_HISTORICAL_REFERENCE_DB,sloveniaHistoricalRows,sloveniaHistoricalStats} from './europe-historical-slovenia.mjs';import {CYPRUS_HISTORICAL_REFERENCE_DB,cyprusHistoricalRows,cyprusHistoricalStats} from './europe-historical-cyprus.mjs';import {MALTA_HISTORICAL_REFERENCE_DB,maltaHistoricalRows,maltaHistoricalStats} from './europe-historical-malta.mjs';import {SLOVAKIA_HISTORICAL_REFERENCE_DB,slovakiaHistoricalRows,slovakiaHistoricalStats} from './europe-historical-slovakia.mjs';import {ESTONIA_HISTORICAL_REFERENCE_DB,estoniaHistoricalRows,estoniaHistoricalStats} from './europe-historical-estonia.mjs';import {LATVIA_HISTORICAL_REFERENCE_DB,latviaHistoricalRows,latviaHistoricalStats} from './europe-historical-latvia.mjs';import {LITHUANIA_HISTORICAL_REFERENCE_DB,lithuaniaHistoricalRows,lithuaniaHistoricalStats} from './europe-historical-lithuania.mjs';import {CROATIA_HISTORICAL_REFERENCE_DB,croatiaHistoricalRows,croatiaHistoricalStats} from './europe-historical-croatia.mjs';import {BULGARIA_HISTORICAL_REFERENCE_DB,bulgariaHistoricalRows,bulgariaHistoricalStats} from './europe-historical-bulgaria.mjs';
-const norm=v=>String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/€/g,'euro').replace(/\s+/g,' '),value=(c,k)=>c?.querySelector(`[data-field="${k}"]`)?.value||'',set=(c,k,v)=>{const e=c?.querySelector(`[data-field="${k}"]`);if(!e||v==null||v==='')return;e.value=String(v);e.dispatchEvent(new Event(e.tagName==='SELECT'?'change':'input',{bubbles:true}));},yearOf=v=>{const m=String(v||'').match(/\b(18|19|20)\d{2}\b/);return m?Number(m[0]):null;};
-function isEuro(c){const x=norm(value(c,'currency')),d=norm(value(c,'denomination'));return x.includes('euro')||/^(1|2|5|10|20|50) cent$/.test(d)||/^[12] euro/.test(d);}function scoreSeries(c,r){let s=0,co=norm(value(c,'country')),d=norm(value(c,'denomination')),y=yearOf(value(c,'year')),t=norm([value(c,'referenceClues'),value(c,'obverseDesign'),value(c,'reverseDesign'),value(c,'notes')].join(' '));if(co&&norm(r.country)===co)s+=8;if(d&&norm(r.denomination)===d)s+=8;if(y&&y>=r.yearFrom&&y<=r.yearTo)s+=5;if(t)for(const k of norm(`${r.design};${r.clues}`).split(/[;,/]/).map(x=>x.trim()).filter(x=>x.length>=3))if(t.includes(k))s+=2;return s;}function enrichEuroCard(c){if(!c||!isEuro(c))return;const co=norm(value(c,'country')),d=norm(value(c,'denomination')),y=yearOf(value(c,'year')),regular=EURO_REFERENCE_DB.find(r=>(!co||norm(r.country)===co)&&(!d||norm(r.denomination)===d)&&(!y||(y>=r.yearFrom&&y<=r.yearTo))),sc=EURO_SERIES_REFERENCE_DB.map(r=>({r,s:scoreSeries(c,r)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s),series=sc[0]?.r,ss=sc[0]?.s||0,ch=ss>=8?series:regular;if(ch){set(c,'currency','Euro');set(c,'country',ch.country);set(c,'coinType',ss>=8?`${series.country} ${series.denomination} — ${series.series}`:ch.type);set(c,'referenceAuthority','European Commission');set(c,'referenceSource',ch.source);}const two=classifyEuroTwo({denomination:value(c,'denomination'),currency:value(c,'currency')||'Euro',year:value(c,'year'),country:value(c,'country'),referenceClues:value(c,'referenceClues'),obverseDesign:value(c,'obverseDesign'),reverseDesign:value(c,'reverseDesign'),notes:value(c,'notes')});if(two){set(c,'researchPriority',two.researchPriority);set(c,'researchReason',two.researchReason);set(c,'referenceSource',two.referenceSource);}}
-const allGerman=[...GERMANY_HISTORICAL_REFERENCE_DB,...GERMANY_5DM_COMM,...GERMANY_10DM_COMM,...GERMANY_DDR_REFERENCE_DB];function scoreHist(c,r,aliases){let s=0,co=norm(value(c,'country')),cu=norm(value(c,'currency')),d=norm(value(c,'denomination')),y=yearOf(value(c,'year')),t=norm([value(c,'referenceClues'),value(c,'obverseDesign'),value(c,'reverseDesign'),value(c,'notes')].join(' '));if(co&&aliases.some(a=>co.includes(a)))s+=5;if(cu&&(cu===norm(r.currency)||norm(r.currency).includes(cu)||cu.includes(norm(r.currency))))s+=8;if(d&&d===norm(r.denomination))s+=8;if(y&&y>=Number(r.yearFrom||0)&&y<=Number(r.yearTo||9999))s+=6;for(const k of [r.subject,r.obverse,r.reverse,r.series].filter(Boolean).map(norm))if(k&&t.includes(k))s+=4;return s;}function applyHist(c,h,label){const r=h.r;set(c,'country',r.country);set(c,'currency',r.currency);set(c,'coinType',r.subject?`${r.denomination} — ${r.subject}`:`${r.denomination} — ${r.series}`);set(c,'referenceMatch',`Matched to official ${label} historical reference`);set(c,'referenceAuthority',r.authority);set(c,'referenceSource',r.source);set(c,'metal',r.metal||'');set(c,'weight',r.weight||'');set(c,'diameter',r.diameter||'');set(c,'researchPriority',r.researchPriority||r.priority||'Possibly interesting');set(c,'researchReason',r.researchReason||r.reason);set(c,'confidence',h.s>=22?'High':'Medium');}function enrich(c,db,aliases,label){if(!c||isEuro(c))return;const h=db.map(r=>({r,s:scoreHist(c,r,aliases)})).filter(x=>x.s>=13).sort((a,b)=>b.s-a.s)[0];if(h)applyHist(c,h,label);}
-document.querySelector('#records')?.addEventListener('click',e=>{const b=e.target.closest('button[data-action="verify-reference"]');if(!b)return;const id=b.closest('.record-card')?.dataset.id;setTimeout(()=>{const c=document.querySelector(`.record-card[data-id="${CSS.escape(id)}"]`);enrichEuroCard(c);enrich(c,allGerman,['germany','deutschland','ddr'],'Deutsche Bundesbank');enrich(c,IRELAND_HISTORICAL_REFERENCE_DB,['ireland','eire','irish'],'Central Bank of Ireland');enrich(c,NETHERLANDS_HISTORICAL_REFERENCE_DB,['netherlands','nederland','dutch'],'De Nederlandsche Bank / NNC');enrich(c,BELGIUM_HISTORICAL_REFERENCE_DB,['belgium','belgie','belgique','belgien','belgian'],'National Bank of Belgium');enrich(c,FRANCE_HISTORICAL_REFERENCE_DB,['france','frankrijk','francais','french'],'Banque de France / Monnaie de Paris');enrich(c,SPAIN_HISTORICAL_REFERENCE_DB,['spain','espana','spanje','spanish','espanol'],'Banco de España / FNMT-RCM');enrich(c,ITALY_HISTORICAL_REFERENCE_DB,['italy','italia','italie','italian','italiano'],'Banca d’Italia / Museo della Zecca');enrich(c,AUSTRIA_HISTORICAL_REFERENCE_DB,['austria','osterreich','oesterreich','oostenrijk','austrian'],'Oesterreichische Nationalbank / Münze Österreich');enrich(c,PORTUGAL_HISTORICAL_REFERENCE_DB,['portugal','portuguese','portugues','portugees'],'Banco de Portugal / INCM — Casa da Moeda');enrich(c,GREECE_HISTORICAL_REFERENCE_DB,['greece','griekenland','hellas','hellenic','greek'],'Bank of Greece / Greek Mint');enrich(c,FINLAND_HISTORICAL_REFERENCE_DB,['finland','suomi','finnish','fins','finlandia'],'Bank of Finland');enrich(c,LUXEMBOURG_HISTORICAL_REFERENCE_DB,['luxembourg','luxemburg','letzebuerg','luxembourgeois'],'Banque centrale du Luxembourg');enrich(c,SLOVENIA_HISTORICAL_REFERENCE_DB,['slovenia','slovenie','slovenija','slovene','slovenian'],'Banka Slovenije');enrich(c,CYPRUS_HISTORICAL_REFERENCE_DB,['cyprus','kypros','kibris','cypriot','κυπρος'],'Central Bank of Cyprus');enrich(c,MALTA_HISTORICAL_REFERENCE_DB,['malta','maltese','malti'],'Central Bank of Malta');enrich(c,SLOVAKIA_HISTORICAL_REFERENCE_DB,['slovakia','slowakije','slovensko','slovak'],'Národná banka Slovenska');enrich(c,ESTONIA_HISTORICAL_REFERENCE_DB,['estonia','estland','eesti','estonian','estisch'],'Eesti Pank');enrich(c,LATVIA_HISTORICAL_REFERENCE_DB,['latvia','letland','latvija','latvian','lets'],'Latvijas Banka');enrich(c,LITHUANIA_HISTORICAL_REFERENCE_DB,['lithuania','litouwen','lietuva','lithuanian','litouws'],'Bank of Lithuania');enrich(c,CROATIA_HISTORICAL_REFERENCE_DB,['croatia','kroatie','hrvatska','croatian','kroatisch'],'Croatian National Bank');enrich(c,BULGARIA_HISTORICAL_REFERENCE_DB,['bulgaria','bulgarije','българия','bulgarian','bulgaars'],'Bulgarian National Bank');},0);});
-function append(wb,n,rows){if(!rows?.length||wb.SheetNames.includes(n))return;const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=Object.keys(rows[0]).map(k=>({wch:Math.min(60,Math.max(14,k.length+2))}));XLSX.utils.book_append_sheet(wb,ws,n);}const comm=a=>a.map(r=>({Country:r.country,Currency:r.currency,Series:r.series,Denomination:r.denomination,Subject:r.subject,Year:r.yearFrom,'Mint Mark':r.mintMark||'',Mintage:r.mintage||'',Source:r.source,'Research Priority':r.researchPriority}));const hook=()=>{if(!globalThis.XLSX?.writeFile||XLSX.writeFile.__euHook)return false;const o=XLSX.writeFile.bind(XLSX),h=(wb,...a)=>{append(wb,'EU Euro Circulation',euroReferenceRows());append(wb,'EU National Series',euroSeriesRows());append(wb,'EU €2 Commemorative',euroCommemorativeRows());append(wb,'Germany DM',germanyHistoricalRows());append(wb,'Germany 5DM Comm',comm(GERMANY_5DM_COMM));append(wb,'Germany 10DM Comm',comm(GERMANY_10DM_COMM));append(wb,'Germany DDR',germanyDdrRows());append(wb,'Ireland Historical',irelandHistoricalRows());append(wb,'Netherlands Historical',netherlandsHistoricalRows());append(wb,'Belgium Historical',belgiumHistoricalRows());append(wb,'France Historical',franceHistoricalRows());append(wb,'Spain Historical',spainHistoricalRows());append(wb,'Italy Historical',italyHistoricalRows());append(wb,'Austria Historical',austriaHistoricalRows());append(wb,'Portugal Historical',portugalHistoricalRows());append(wb,'Greece Historical',greeceHistoricalRows());append(wb,'Finland Historical',finlandHistoricalRows());append(wb,'Luxembourg Historical',luxembourgHistoricalRows());append(wb,'Slovenia Historical',sloveniaHistoricalRows());append(wb,'Cyprus Historical',cyprusHistoricalRows());append(wb,'Malta Historical',maltaHistoricalRows());append(wb,'Slovakia Historical',slovakiaHistoricalRows());append(wb,'Estonia Historical',estoniaHistoricalRows());append(wb,'Latvia Historical',latviaHistoricalRows());append(wb,'Lithuania Historical',lithuaniaHistoricalRows());append(wb,'Croatia Historical',croatiaHistoricalRows());append(wb,'Bulgaria Historical',bulgariaHistoricalRows());return o(wb,...a);};h.__euHook=true;XLSX.writeFile=h;return true;};if(!hook())window.addEventListener('load',hook,{once:true});const st=document.querySelector('#reference-db-status');if(st){const n=netherlandsHistoricalStats(),b=belgiumHistoricalStats(),f=franceHistoricalStats(),s=spainHistoricalStats(),i=italyHistoricalStats(),a=austriaHistoricalStats(),p=portugalHistoricalStats(),g=greeceHistoricalStats(),fi=finlandHistoricalStats(),lu=luxembourgHistoricalStats(),si=sloveniaHistoricalStats(),cy=cyprusHistoricalStats(),mt=maltaHistoricalStats(),sk=slovakiaHistoricalStats(),ee=estoniaHistoricalStats(),lv=latviaHistoricalStats(),lt=lithuaniaHistoricalStats(),hr=croatiaHistoricalStats(),bg=bulgariaHistoricalStats();setTimeout(()=>{if(!st.textContent.includes('Netherlands historical coverage'))st.textContent+=` Netherlands historical coverage: ${n.postWar} post-war + ${n.older} older Kingdom + ${n.special} commemorative reference records.`;if(!st.textContent.includes('Belgian historical coverage'))st.textContent+=` Belgian historical coverage: ${b.periods} historical periods, ${b.keySignals} key identification signals and ${b.records} reference records.`;if(!st.textContent.includes('French historical coverage'))st.textContent+=` French historical coverage: ${f.periods} historical franc periods, ${f.keySignals} key identification signals and ${f.records} reference records.`;if(!st.textContent.includes('Spanish historical coverage'))st.textContent+=` Spanish historical coverage: ${s.periods} peseta periods, ${s.keySignals} key identification signals and ${s.records} reference records.`;if(!st.textContent.includes('Italian historical coverage'))st.textContent+=` Italian historical coverage: ${i.periods} lira periods, ${i.keySignals} key identification signals and ${i.records} reference records.`;if(!st.textContent.includes('Austrian historical coverage'))st.textContent+=` Austrian historical coverage: ${a.periods} schilling periods, ${a.keySignals} key identification signals and ${a.records} reference records.`;if(!st.textContent.includes('Portuguese historical coverage'))st.textContent+=` Portuguese historical coverage: ${p.periods} escudo periods, ${p.keySignals} key identification signals and ${p.records} reference records.`;if(!st.textContent.includes('Greek historical coverage'))st.textContent+=` Greek historical coverage: ${g.periods} drachma periods, ${g.keySignals} key identification signals and ${g.records} reference records.`;if(!st.textContent.includes('Finnish historical coverage'))st.textContent+=` Finnish historical coverage: ${fi.periods} markka periods, ${fi.keySignals} key identification signals and ${fi.records} reference records.`;if(!st.textContent.includes('Luxembourg historical coverage'))st.textContent+=` Luxembourg historical coverage: ${lu.periods} franc periods, ${lu.keySignals} key identification signals and ${lu.records} reference records.`;if(!st.textContent.includes('Slovenian historical coverage'))st.textContent+=` Slovenian historical coverage: ${si.regularCoins} regular tolar coin types, ${si.keySignals} key identification/research signals and ${si.records} reference records.`;if(!st.textContent.includes('Cyprus historical coverage'))st.textContent+=` Cyprus historical coverage: ${cy.periods} pound/mil/cent periods, ${cy.keySignals} key identification/research signals and ${cy.records} reference records.`;if(!st.textContent.includes('Malta historical coverage'))st.textContent+=` Malta historical coverage: ${mt.periods} sterling/decimal-lira periods, ${mt.keySignals} key identification/research signals and ${mt.records} reference records.`;if(!st.textContent.includes('Slovak historical coverage'))st.textContent+=` Slovak historical coverage: ${sk.regularCoins} regular koruna coin types, ${sk.keySignals} key identification/research signals and ${sk.records} reference records.`;if(!st.textContent.includes('Estonian historical coverage'))st.textContent+=` Estonian historical coverage: ${ee.regularCoins} regular kroon coin types, ${ee.keySignals} key identification/research signals and ${ee.records} reference records.`;if(!st.textContent.includes('Latvian historical coverage'))st.textContent+=` Latvian historical coverage: ${lv.regularCoins} regular lats coin families, ${lv.keySignals} key identification/research signals and ${lv.records} reference records.`;if(!st.textContent.includes('Lithuanian historical coverage'))st.textContent+=` Lithuanian historical coverage: ${lt.regularCoins} regular litas coin families, ${lt.keySignals} key identification/research signals and ${lt.records} reference records.`;if(!st.textContent.includes('Croatian historical coverage'))st.textContent+=` Croatian historical coverage: ${hr.regularCoins} regular kuna/lipa coin families, ${hr.keySignals} key identification/research signals and ${hr.records} reference records.`;if(!st.textContent.includes('Bulgarian historical coverage'))st.textContent+=` Bulgarian historical coverage: ${bg.regularCoins} regular lev/stotinki coin families, ${bg.keySignals} key identification/research signals and ${bg.records} reference records.`;},0);}
+
+import { EURO_REFERENCE_DB, euroReferenceRows } from './euro-reference.mjs';
+import { EURO_SERIES_REFERENCE_DB, euroSeriesRows } from './euro-series-reference.mjs';
+import { classifyEuroTwo, euroCommemorativeRows } from './euro-commemorative-reference.mjs';
+import { GERMANY_HISTORICAL_REFERENCE_DB, germanyHistoricalRows } from './europe-historical-germany.mjs';
+import { GERMANY_5DM_COMM } from './germany-5dm-commemoratives.mjs';
+import { GERMANY_10DM_COMM } from './germany-10dm-commemoratives.mjs';
+import { GERMANY_DDR_REFERENCE_DB, germanyDdrRows } from './germany-ddr-reference.mjs';
+import { IRELAND_HISTORICAL_REFERENCE_DB, irelandHistoricalRows } from './europe-historical-ireland.mjs';
+import { NETHERLANDS_HISTORICAL_REFERENCE_DB, netherlandsHistoricalRows, netherlandsHistoricalStats } from './europe-historical-netherlands.mjs';
+import { BELGIUM_HISTORICAL_REFERENCE_DB, belgiumHistoricalRows, belgiumHistoricalStats } from './europe-historical-belgium.mjs';
+import { FRANCE_HISTORICAL_REFERENCE_DB, franceHistoricalRows, franceHistoricalStats } from './europe-historical-france.mjs';
+import { SPAIN_HISTORICAL_REFERENCE_DB, spainHistoricalRows, spainHistoricalStats } from './europe-historical-spain.mjs';
+import { ITALY_HISTORICAL_REFERENCE_DB, italyHistoricalRows, italyHistoricalStats } from './europe-historical-italy.mjs';
+import { AUSTRIA_HISTORICAL_REFERENCE_DB, austriaHistoricalRows, austriaHistoricalStats } from './europe-historical-austria.mjs';
+import { PORTUGAL_HISTORICAL_REFERENCE_DB, portugalHistoricalRows, portugalHistoricalStats } from './europe-historical-portugal.mjs';
+import { GREECE_HISTORICAL_REFERENCE_DB, greeceHistoricalRows, greeceHistoricalStats } from './europe-historical-greece.mjs';
+import { FINLAND_HISTORICAL_REFERENCE_DB, finlandHistoricalRows, finlandHistoricalStats } from './europe-historical-finland.mjs';
+import { LUXEMBOURG_HISTORICAL_REFERENCE_DB, luxembourgHistoricalRows, luxembourgHistoricalStats } from './europe-historical-luxembourg.mjs';
+import { SLOVENIA_HISTORICAL_REFERENCE_DB, sloveniaHistoricalRows, sloveniaHistoricalStats } from './europe-historical-slovenia.mjs';
+import { CYPRUS_HISTORICAL_REFERENCE_DB, cyprusHistoricalRows, cyprusHistoricalStats } from './europe-historical-cyprus.mjs';
+import { MALTA_HISTORICAL_REFERENCE_DB, maltaHistoricalRows, maltaHistoricalStats } from './europe-historical-malta.mjs';
+import { SLOVAKIA_HISTORICAL_REFERENCE_DB, slovakiaHistoricalRows, slovakiaHistoricalStats } from './europe-historical-slovakia.mjs';
+import { ESTONIA_HISTORICAL_REFERENCE_DB, estoniaHistoricalRows, estoniaHistoricalStats } from './europe-historical-estonia.mjs';
+import { LATVIA_HISTORICAL_REFERENCE_DB, latviaHistoricalRows, latviaHistoricalStats } from './europe-historical-latvia.mjs';
+import { LITHUANIA_HISTORICAL_REFERENCE_DB, lithuaniaHistoricalRows, lithuaniaHistoricalStats } from './europe-historical-lithuania.mjs';
+import { CROATIA_HISTORICAL_REFERENCE_DB, croatiaHistoricalRows, croatiaHistoricalStats } from './europe-historical-croatia.mjs';
+import { BULGARIA_HISTORICAL_REFERENCE_DB, bulgariaHistoricalRows, bulgariaHistoricalStats } from './europe-historical-bulgaria.mjs';
+
+const norm = value => String(value || '')
+  .trim()
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/€/g, 'euro')
+  .replace(/\s+/g, ' ');
+
+const value = (card, key) => card?.querySelector(`[data-field="${key}"]`)?.value || '';
+
+const set = (card, key, newValue) => {
+  const element = card?.querySelector(`[data-field="${key}"]`);
+  if (!element || newValue == null || newValue === '') return;
+  element.value = String(newValue);
+  element.dispatchEvent(new Event(element.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+};
+
+const yearOf = input => {
+  const match = String(input || '').match(/\b(18|19|20)\d{2}\b/);
+  return match ? Number(match[0]) : null;
+};
+
+function isEuro(card) {
+  const currency = norm(value(card, 'currency'));
+  const denomination = norm(value(card, 'denomination'));
+  return currency.includes('euro') || /^(1|2|5|10|20|50) cent$/.test(denomination) || /^[12] euro/.test(denomination);
+}
+
+function scoreSeries(card, row) {
+  let score = 0;
+  const country = norm(value(card, 'country'));
+  const denomination = norm(value(card, 'denomination'));
+  const year = yearOf(value(card, 'year'));
+  const text = norm([
+    value(card, 'referenceClues'),
+    value(card, 'obverseDesign'),
+    value(card, 'reverseDesign'),
+    value(card, 'notes'),
+  ].join(' '));
+
+  if (country && norm(row.country) === country) score += 8;
+  if (denomination && norm(row.denomination) === denomination) score += 8;
+  if (year && year >= row.yearFrom && year <= row.yearTo) score += 5;
+
+  if (text) {
+    for (const keyword of norm(`${row.design};${row.clues}`)
+      .split(/[;,/]/)
+      .map(item => item.trim())
+      .filter(item => item.length >= 3)) {
+      if (text.includes(keyword)) score += 2;
+    }
+  }
+
+  return score;
+}
+
+function enrichEuroCard(card) {
+  if (!card || !isEuro(card)) return;
+
+  const country = norm(value(card, 'country'));
+  const denomination = norm(value(card, 'denomination'));
+  const year = yearOf(value(card, 'year'));
+
+  const regular = EURO_REFERENCE_DB.find(row =>
+    (!country || norm(row.country) === country) &&
+    (!denomination || norm(row.denomination) === denomination) &&
+    (!year || (year >= row.yearFrom && year <= row.yearTo))
+  );
+
+  const scored = EURO_SERIES_REFERENCE_DB
+    .map(row => ({ r: row, s: scoreSeries(card, row) }))
+    .filter(item => item.s > 0)
+    .sort((left, right) => right.s - left.s);
+
+  const series = scored[0]?.r;
+  const seriesScore = scored[0]?.s || 0;
+  const chosen = seriesScore >= 8 ? series : regular;
+
+  if (chosen) {
+    set(card, 'currency', 'Euro');
+    set(card, 'country', chosen.country);
+    set(card, 'coinType', seriesScore >= 8
+      ? `${series.country} ${series.denomination} — ${series.series}`
+      : chosen.type);
+    set(card, 'referenceAuthority', 'European Commission');
+    set(card, 'referenceSource', chosen.source);
+  }
+
+  const twoEuro = classifyEuroTwo({
+    denomination: value(card, 'denomination'),
+    currency: value(card, 'currency') || 'Euro',
+    year: value(card, 'year'),
+    country: value(card, 'country'),
+    referenceClues: value(card, 'referenceClues'),
+    obverseDesign: value(card, 'obverseDesign'),
+    reverseDesign: value(card, 'reverseDesign'),
+    notes: value(card, 'notes'),
+  });
+
+  if (twoEuro) {
+    set(card, 'researchPriority', twoEuro.researchPriority);
+    set(card, 'researchReason', twoEuro.researchReason);
+    set(card, 'referenceSource', twoEuro.referenceSource);
+  }
+}
+
+const allGerman = [
+  ...GERMANY_HISTORICAL_REFERENCE_DB,
+  ...GERMANY_5DM_COMM,
+  ...GERMANY_10DM_COMM,
+  ...GERMANY_DDR_REFERENCE_DB,
+];
+
+function scoreHist(card, row, aliases) {
+  let score = 0;
+  const country = norm(value(card, 'country'));
+  const currency = norm(value(card, 'currency'));
+  const denomination = norm(value(card, 'denomination'));
+  const year = yearOf(value(card, 'year'));
+  const text = norm([
+    value(card, 'referenceClues'),
+    value(card, 'obverseDesign'),
+    value(card, 'reverseDesign'),
+    value(card, 'notes'),
+  ].join(' '));
+
+  if (country && aliases.some(alias => country.includes(alias))) score += 5;
+  if (currency && (
+    currency === norm(row.currency) ||
+    norm(row.currency).includes(currency) ||
+    currency.includes(norm(row.currency))
+  )) score += 8;
+  if (denomination && denomination === norm(row.denomination)) score += 8;
+  if (year && year >= Number(row.yearFrom || 0) && year <= Number(row.yearTo || 9999)) score += 6;
+
+  for (const keyword of [row.subject, row.obverse, row.reverse, row.series].filter(Boolean).map(norm)) {
+    if (keyword && text.includes(keyword)) score += 4;
+  }
+
+  return score;
+}
+
+function applyHist(card, hit, label) {
+  const row = hit.r;
+  set(card, 'country', row.country);
+  set(card, 'currency', row.currency);
+  set(card, 'coinType', row.subject
+    ? `${row.denomination} — ${row.subject}`
+    : `${row.denomination} — ${row.series}`);
+  set(card, 'referenceMatch', `Matched to official ${label} historical reference`);
+  set(card, 'referenceAuthority', row.authority);
+  set(card, 'referenceSource', row.source);
+  set(card, 'metal', row.metal || '');
+  set(card, 'weight', row.weight || '');
+  set(card, 'diameter', row.diameter || '');
+  set(card, 'researchPriority', row.researchPriority || row.priority || 'Possibly interesting');
+  set(card, 'researchReason', row.researchReason || row.reason);
+  set(card, 'confidence', hit.s >= 22 ? 'High' : 'Medium');
+}
+
+function enrich(card, database, aliases, label) {
+  if (!card || isEuro(card)) return;
+
+  const hit = database
+    .map(row => ({ r: row, s: scoreHist(card, row, aliases) }))
+    .filter(item => item.s >= 13)
+    .sort((left, right) => right.s - left.s)[0];
+
+  if (hit) applyHist(card, hit, label);
+}
+
+document.querySelector('#records')?.addEventListener('click', event => {
+  const button = event.target.closest('button[data-action="verify-reference"]');
+  if (!button) return;
+
+  const id = button.closest('.record-card')?.dataset.id;
+
+  setTimeout(() => {
+    const card = document.querySelector(`.record-card[data-id="${CSS.escape(id)}"]`);
+
+    enrichEuroCard(card);
+    enrich(card, allGerman, ['germany', 'deutschland', 'ddr'], 'Deutsche Bundesbank');
+    enrich(card, IRELAND_HISTORICAL_REFERENCE_DB, ['ireland', 'eire', 'irish'], 'Central Bank of Ireland');
+    enrich(card, NETHERLANDS_HISTORICAL_REFERENCE_DB, ['netherlands', 'nederland', 'dutch'], 'De Nederlandsche Bank / NNC');
+    enrich(card, BELGIUM_HISTORICAL_REFERENCE_DB, ['belgium', 'belgie', 'belgique', 'belgien', 'belgian'], 'National Bank of Belgium');
+    enrich(card, FRANCE_HISTORICAL_REFERENCE_DB, ['france', 'frankrijk', 'francais', 'french'], 'Banque de France / Monnaie de Paris');
+    enrich(card, SPAIN_HISTORICAL_REFERENCE_DB, ['spain', 'espana', 'spanje', 'spanish', 'espanol'], 'Banco de España / FNMT-RCM');
+    enrich(card, ITALY_HISTORICAL_REFERENCE_DB, ['italy', 'italia', 'italie', 'italian', 'italiano'], 'Banca d’Italia / Museo della Zecca');
+    enrich(card, AUSTRIA_HISTORICAL_REFERENCE_DB, ['austria', 'osterreich', 'oesterreich', 'oostenrijk', 'austrian'], 'Oesterreichische Nationalbank / Münze Österreich');
+    enrich(card, PORTUGAL_HISTORICAL_REFERENCE_DB, ['portugal', 'portuguese', 'portugues', 'portugees'], 'Banco de Portugal / INCM — Casa da Moeda');
+    enrich(card, GREECE_HISTORICAL_REFERENCE_DB, ['greece', 'griekenland', 'hellas', 'hellenic', 'greek'], 'Bank of Greece / Greek Mint');
+    enrich(card, FINLAND_HISTORICAL_REFERENCE_DB, ['finland', 'suomi', 'finnish', 'fins', 'finlandia'], 'Bank of Finland');
+    enrich(card, LUXEMBOURG_HISTORICAL_REFERENCE_DB, ['luxembourg', 'luxemburg', 'letzebuerg', 'luxembourgeois'], 'Banque centrale du Luxembourg');
+    enrich(card, SLOVENIA_HISTORICAL_REFERENCE_DB, ['slovenia', 'slovenie', 'slovenija', 'slovene', 'slovenian'], 'Banka Slovenije');
+    enrich(card, CYPRUS_HISTORICAL_REFERENCE_DB, ['cyprus', 'kypros', 'kibris', 'cypriot', 'κυπρος'], 'Central Bank of Cyprus');
+    enrich(card, MALTA_HISTORICAL_REFERENCE_DB, ['malta', 'maltese', 'malti'], 'Central Bank of Malta');
+    enrich(card, SLOVAKIA_HISTORICAL_REFERENCE_DB, ['slovakia', 'slowakije', 'slovensko', 'slovak'], 'Národná banka Slovenska');
+    enrich(card, ESTONIA_HISTORICAL_REFERENCE_DB, ['estonia', 'estland', 'eesti', 'estonian', 'estisch'], 'Eesti Pank');
+    enrich(card, LATVIA_HISTORICAL_REFERENCE_DB, ['latvia', 'letland', 'latvija', 'latvian', 'lets'], 'Latvijas Banka');
+    enrich(card, LITHUANIA_HISTORICAL_REFERENCE_DB, ['lithuania', 'litouwen', 'lietuva', 'lithuanian', 'litouws'], 'Bank of Lithuania');
+    enrich(card, CROATIA_HISTORICAL_REFERENCE_DB, ['croatia', 'kroatie', 'hrvatska', 'croatian', 'kroatisch'], 'Croatian National Bank');
+    enrich(card, BULGARIA_HISTORICAL_REFERENCE_DB, ['bulgaria', 'bulgarije', 'българия', 'bulgarian', 'bulgaars'], 'Bulgarian National Bank');
+  }, 0);
+});
+
+function append(workbook, name, rows) {
+  if (!rows?.length || workbook.SheetNames.includes(name)) return;
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = Object.keys(rows[0]).map(key => ({
+    wch: Math.min(60, Math.max(14, key.length + 2)),
+  }));
+  XLSX.utils.book_append_sheet(workbook, worksheet, name);
+}
+
+const comm = rows => rows.map(row => ({
+  Country: row.country,
+  Currency: row.currency,
+  Series: row.series,
+  Denomination: row.denomination,
+  Subject: row.subject,
+  Year: row.yearFrom,
+  'Mint Mark': row.mintMark || '',
+  Mintage: row.mintage || '',
+  Source: row.source,
+  'Research Priority': row.researchPriority,
+}));
+
+const hook = () => {
+  if (!globalThis.XLSX?.writeFile || XLSX.writeFile.__euHook) return false;
+
+  const originalWriteFile = XLSX.writeFile.bind(XLSX);
+  const hookedWriteFile = (workbook, ...args) => {
+    append(workbook, 'EU Euro Circulation', euroReferenceRows());
+    append(workbook, 'EU National Series', euroSeriesRows());
+    append(workbook, 'EU €2 Commemorative', euroCommemorativeRows());
+    append(workbook, 'Germany DM', germanyHistoricalRows());
+    append(workbook, 'Germany 5DM Comm', comm(GERMANY_5DM_COMM));
+    append(workbook, 'Germany 10DM Comm', comm(GERMANY_10DM_COMM));
+    append(workbook, 'Germany DDR', germanyDdrRows());
+    append(workbook, 'Ireland Historical', irelandHistoricalRows());
+    append(workbook, 'Netherlands Historical', netherlandsHistoricalRows());
+    append(workbook, 'Belgium Historical', belgiumHistoricalRows());
+    append(workbook, 'France Historical', franceHistoricalRows());
+    append(workbook, 'Spain Historical', spainHistoricalRows());
+    append(workbook, 'Italy Historical', italyHistoricalRows());
+    append(workbook, 'Austria Historical', austriaHistoricalRows());
+    append(workbook, 'Portugal Historical', portugalHistoricalRows());
+    append(workbook, 'Greece Historical', greeceHistoricalRows());
+    append(workbook, 'Finland Historical', finlandHistoricalRows());
+    append(workbook, 'Luxembourg Historical', luxembourgHistoricalRows());
+    append(workbook, 'Slovenia Historical', sloveniaHistoricalRows());
+    append(workbook, 'Cyprus Historical', cyprusHistoricalRows());
+    append(workbook, 'Malta Historical', maltaHistoricalRows());
+    append(workbook, 'Slovakia Historical', slovakiaHistoricalRows());
+    append(workbook, 'Estonia Historical', estoniaHistoricalRows());
+    append(workbook, 'Latvia Historical', latviaHistoricalRows());
+    append(workbook, 'Lithuania Historical', lithuaniaHistoricalRows());
+    append(workbook, 'Croatia Historical', croatiaHistoricalRows());
+    append(workbook, 'Bulgaria Historical', bulgariaHistoricalRows());
+    return originalWriteFile(workbook, ...args);
+  };
+
+  hookedWriteFile.__euHook = true;
+  XLSX.writeFile = hookedWriteFile;
+  return true;
+};
+
+if (!hook()) {
+  window.addEventListener('load', hook, { once: true });
+}
+
+const status = document.querySelector('#reference-db-status');
+if (status) {
+  const n = netherlandsHistoricalStats();
+  const b = belgiumHistoricalStats();
+  const f = franceHistoricalStats();
+  const s = spainHistoricalStats();
+  const i = italyHistoricalStats();
+  const a = austriaHistoricalStats();
+  const p = portugalHistoricalStats();
+  const g = greeceHistoricalStats();
+  const fi = finlandHistoricalStats();
+  const lu = luxembourgHistoricalStats();
+  const si = sloveniaHistoricalStats();
+  const cy = cyprusHistoricalStats();
+  const mt = maltaHistoricalStats();
+  const sk = slovakiaHistoricalStats();
+  const ee = estoniaHistoricalStats();
+  const lv = latviaHistoricalStats();
+  const lt = lithuaniaHistoricalStats();
+  const hr = croatiaHistoricalStats();
+  const bg = bulgariaHistoricalStats();
+
+  setTimeout(() => {
+    if (!status.textContent.includes('Netherlands historical coverage')) status.textContent += ` Netherlands historical coverage: ${n.postWar} post-war + ${n.older} older Kingdom + ${n.special} commemorative reference records.`;
+    if (!status.textContent.includes('Belgian historical coverage')) status.textContent += ` Belgian historical coverage: ${b.periods} historical periods, ${b.keySignals} key identification signals and ${b.records} reference records.`;
+    if (!status.textContent.includes('French historical coverage')) status.textContent += ` French historical coverage: ${f.periods} historical franc periods, ${f.keySignals} key identification signals and ${f.records} reference records.`;
+    if (!status.textContent.includes('Spanish historical coverage')) status.textContent += ` Spanish historical coverage: ${s.periods} peseta periods, ${s.keySignals} key identification signals and ${s.records} reference records.`;
+    if (!status.textContent.includes('Italian historical coverage')) status.textContent += ` Italian historical coverage: ${i.periods} lira periods, ${i.keySignals} key identification signals and ${i.records} reference records.`;
+    if (!status.textContent.includes('Austrian historical coverage')) status.textContent += ` Austrian historical coverage: ${a.periods} schilling periods, ${a.keySignals} key identification signals and ${a.records} reference records.`;
+    if (!status.textContent.includes('Portuguese historical coverage')) status.textContent += ` Portuguese historical coverage: ${p.periods} escudo periods, ${p.keySignals} key identification signals and ${p.records} reference records.`;
+    if (!status.textContent.includes('Greek historical coverage')) status.textContent += ` Greek historical coverage: ${g.periods} drachma periods, ${g.keySignals} key identification signals and ${g.records} reference records.`;
+    if (!status.textContent.includes('Finnish historical coverage')) status.textContent += ` Finnish historical coverage: ${fi.periods} markka periods, ${fi.keySignals} key identification signals and ${fi.records} reference records.`;
+    if (!status.textContent.includes('Luxembourg historical coverage')) status.textContent += ` Luxembourg historical coverage: ${lu.periods} franc periods, ${lu.keySignals} key identification signals and ${lu.records} reference records.`;
+    if (!status.textContent.includes('Slovenian historical coverage')) status.textContent += ` Slovenian historical coverage: ${si.regularCoins} regular tolar coin types, ${si.keySignals} key identification/research signals and ${si.records} reference records.`;
+    if (!status.textContent.includes('Cyprus historical coverage')) status.textContent += ` Cyprus historical coverage: ${cy.periods} pound/mil/cent periods, ${cy.keySignals} key identification/research signals and ${cy.records} reference records.`;
+    if (!status.textContent.includes('Malta historical coverage')) status.textContent += ` Malta historical coverage: ${mt.periods} sterling/decimal-lira periods, ${mt.keySignals} key identification/research signals and ${mt.records} reference records.`;
+    if (!status.textContent.includes('Slovak historical coverage')) status.textContent += ` Slovak historical coverage: ${sk.regularCoins} regular koruna coin types, ${sk.keySignals} key identification/research signals and ${sk.records} reference records.`;
+    if (!status.textContent.includes('Estonian historical coverage')) status.textContent += ` Estonian historical coverage: ${ee.regularCoins} regular kroon coin types, ${ee.keySignals} key identification/research signals and ${ee.records} reference records.`;
+    if (!status.textContent.includes('Latvian historical coverage')) status.textContent += ` Latvian historical coverage: ${lv.regularCoins} regular lats coin families, ${lv.keySignals} key identification/research signals and ${lv.records} reference records.`;
+    if (!status.textContent.includes('Lithuanian historical coverage')) status.textContent += ` Lithuanian historical coverage: ${lt.regularCoins} regular litas coin families, ${lt.keySignals} key identification/research signals and ${lt.records} reference records.`;
+    if (!status.textContent.includes('Croatian historical coverage')) status.textContent += ` Croatian historical coverage: ${hr.regularCoins} regular kuna/lipa coin families, ${hr.keySignals} key identification/research signals and ${hr.records} reference records.`;
+    if (!status.textContent.includes('Bulgarian historical coverage')) status.textContent += ` Bulgarian historical coverage: ${bg.regularCoins} regular lev/stotinki coin families, ${bg.keySignals} key identification/research signals and ${bg.records} reference records.`;
+  }, 0);
+}
