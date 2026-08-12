@@ -27,6 +27,7 @@ import { LATVIA_HISTORICAL_REFERENCE_DB, latviaHistoricalRows, latviaHistoricalS
 import { LITHUANIA_HISTORICAL_REFERENCE_DB, lithuaniaHistoricalRows, lithuaniaHistoricalStats } from './europe-historical-lithuania.mjs';
 import { CROATIA_HISTORICAL_REFERENCE_DB, croatiaHistoricalRows, croatiaHistoricalStats } from './europe-historical-croatia.mjs';
 import { BULGARIA_HISTORICAL_REFERENCE_DB, bulgariaHistoricalRows, bulgariaHistoricalStats } from './europe-historical-bulgaria.mjs';
+import { EUROPE_BATCH01, EUROPE_BATCH01_REFERENCE_DB, europeBatch01Stats } from './europe-batch01-reference.mjs';
 
 const norm = value => String(value || '')
   .trim()
@@ -141,6 +142,13 @@ const allGerman = [
   ...GERMANY_DDR_REFERENCE_DB,
 ];
 
+const batch01ByCountry = new Map(
+  EUROPE_BATCH01.map(country => [country.country, {
+    ...country,
+    database: EUROPE_BATCH01_REFERENCE_DB.filter(row => row.country === country.country),
+  }])
+);
+
 function scoreHist(card, row, aliases) {
   let score = 0;
   const country = norm(value(card, 'country'));
@@ -154,7 +162,7 @@ function scoreHist(card, row, aliases) {
     value(card, 'notes'),
   ].join(' '));
 
-  if (country && aliases.some(alias => country.includes(alias))) score += 5;
+  if (country && aliases.some(alias => country.includes(norm(alias)))) score += 5;
   if (currency && (
     currency === norm(row.currency) ||
     norm(row.currency).includes(currency) ||
@@ -199,6 +207,12 @@ function enrich(card, database, aliases, label) {
   if (hit) applyHist(card, hit, label);
 }
 
+function enrichBatch01(card) {
+  for (const country of batch01ByCountry.values()) {
+    enrich(card, country.database, country.aliases, country.authority);
+  }
+}
+
 document.querySelector('#records')?.addEventListener('click', event => {
   const button = event.target.closest('button[data-action="verify-reference"]');
   if (!button) return;
@@ -230,6 +244,7 @@ document.querySelector('#records')?.addEventListener('click', event => {
     enrich(card, LITHUANIA_HISTORICAL_REFERENCE_DB, ['lithuania', 'litouwen', 'lietuva', 'lithuanian', 'litouws'], 'Bank of Lithuania');
     enrich(card, CROATIA_HISTORICAL_REFERENCE_DB, ['croatia', 'kroatie', 'hrvatska', 'croatian', 'kroatisch'], 'Croatian National Bank');
     enrich(card, BULGARIA_HISTORICAL_REFERENCE_DB, ['bulgaria', 'bulgarije', 'българия', 'bulgarian', 'bulgaars'], 'Bulgarian National Bank');
+    enrichBatch01(card);
   }, 0);
 });
 
@@ -253,6 +268,21 @@ const comm = rows => rows.map(row => ({
   Mintage: row.mintage || '',
   Source: row.source,
   'Research Priority': row.researchPriority,
+}));
+
+const genericRows = rows => rows.map(row => ({
+  Country: row.country,
+  Currency: row.currency,
+  Period: row.period,
+  Series: row.series,
+  Denomination: row.denomination,
+  'Year From': row.yearFrom,
+  'Year To': row.yearTo,
+  Type: row.type,
+  Authority: row.authority,
+  Source: row.source,
+  'Research Priority': row.researchPriority,
+  'Research Reason': row.researchReason,
 }));
 
 const hook = () => {
@@ -287,6 +317,11 @@ const hook = () => {
     append(workbook, 'Lithuania Historical', lithuaniaHistoricalRows());
     append(workbook, 'Croatia Historical', croatiaHistoricalRows());
     append(workbook, 'Bulgaria Historical', bulgariaHistoricalRows());
+
+    for (const country of batch01ByCountry.values()) {
+      append(workbook, `${country.country} Historical`, genericRows(country.database));
+    }
+
     return originalWriteFile(workbook, ...args);
   };
 
@@ -320,6 +355,7 @@ if (status) {
   const lt = lithuaniaHistoricalStats();
   const hr = croatiaHistoricalStats();
   const bg = bulgariaHistoricalStats();
+  const batch01 = europeBatch01Stats();
 
   setTimeout(() => {
     if (!status.textContent.includes('Netherlands historical coverage')) status.textContent += ` Netherlands historical coverage: ${n.postWar} post-war + ${n.older} older Kingdom + ${n.special} commemorative reference records.`;
@@ -341,5 +377,6 @@ if (status) {
     if (!status.textContent.includes('Lithuanian historical coverage')) status.textContent += ` Lithuanian historical coverage: ${lt.regularCoins} regular litas coin families, ${lt.keySignals} key identification/research signals and ${lt.records} reference records.`;
     if (!status.textContent.includes('Croatian historical coverage')) status.textContent += ` Croatian historical coverage: ${hr.regularCoins} regular kuna/lipa coin families, ${hr.keySignals} key identification/research signals and ${hr.records} reference records.`;
     if (!status.textContent.includes('Bulgarian historical coverage')) status.textContent += ` Bulgarian historical coverage: ${bg.regularCoins} regular lev/stotinki coin families, ${bg.keySignals} key identification/research signals and ${bg.records} reference records.`;
+    if (!status.textContent.includes('Europe batch 1 coverage')) status.textContent += ` Europe batch 1 coverage: ${batch01.countries} countries, ${batch01.records} reference records, ${batch01.interesting} interesting research signals.`;
   }, 0);
 }
