@@ -1,0 +1,27 @@
+name: Coin Reference Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  reference-tests:
+    name: Run coin scanner regression tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run regression tests
+        run: |
+          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs
