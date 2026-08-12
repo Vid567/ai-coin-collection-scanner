@@ -1,0 +1,25 @@
+import './coin.js';
+import {EURO_REFERENCE_DB,euroReferenceRows,euroReferenceStats} from './euro-reference.mjs';
+import {EURO_SERIES_REFERENCE_DB,euroSeriesRows,euroSeriesStats} from './euro-series-reference.mjs';
+import {classifyEuroTwo,euroCommemorativeRows} from './euro-commemorative-reference.mjs';
+
+const norm=v=>String(v||'').trim().toLowerCase().replace(/€/g,'euro').replace(/\s+/g,' ');
+const value=(card,key)=>card?.querySelector(`[data-field="${key}"]`)?.value||'';
+const set=(card,key,val)=>{const el=card?.querySelector(`[data-field="${key}"]`);if(!el||val==null||val==='')return;el.value=String(val);el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+const yearOf=v=>{const m=String(v||'').match(/\b(19|20)\d{2}\b/);return m?Number(m[0]):null;};
+function isEuro(card){const currency=norm(value(card,'currency')),den=norm(value(card,'denomination'));return currency.includes('euro')||/^(1|2|5|10|20|50) cent$/.test(den)||/^[12] euro/.test(den);}
+function scoreSeries(card,r){let s=0;const country=norm(value(card,'country')),den=norm(value(card,'denomination')),y=yearOf(value(card,'year'));const clues=norm([value(card,'referenceClues'),value(card,'obverseDesign'),value(card,'reverseDesign'),value(card,'notes')].join(' '));if(country&&norm(r.country)===country)s+=8;if(den&&norm(r.denomination)===den)s+=8;if(y&&y>=r.yearFrom&&y<=r.yearTo)s+=5;if(clues){for(const k of norm(`${r.design};${r.clues}`).split(/[;,/]/).map(x=>x.trim()).filter(x=>x.length>=3))if(clues.includes(k))s+=2;}return s;}
+function bestEuro(card){const country=norm(value(card,'country')),den=norm(value(card,'denomination')),y=yearOf(value(card,'year'));const regular=EURO_REFERENCE_DB.filter(r=>(!country||norm(r.country)===country)&&(!den||norm(r.denomination)===den)&&(!y||(y>=r.yearFrom&&y<=r.yearTo)))[0];const scored=EURO_SERIES_REFERENCE_DB.map(r=>({r,s:scoreSeries(card,r)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);return {regular,series:scored[0]?.r,seriesScore:scored[0]?.s||0};}
+function enrichEuroCard(card){if(!card||!isEuro(card))return;const {regular,series,seriesScore}=bestEuro(card);const rec={denomination:value(card,'denomination'),currency:value(card,'currency')||'Euro',year:value(card,'year'),country:value(card,'country'),referenceClues:value(card,'referenceClues'),obverseDesign:value(card,'obverseDesign'),reverseDesign:value(card,'reverseDesign'),notes:value(card,'notes')};const two=classifyEuroTwo(rec);
+ const chosen=seriesScore>=8?series:regular;
+ if(chosen){set(card,'currency','Euro');set(card,'country',chosen.country);set(card,'coinType',series?`${series.country} ${series.denomination} — ${series.series}`:chosen.type);set(card,'referenceMatch',seriesScore>=8?'Matched to EU national-side series':'Matched to EU circulation reference');set(card,'referenceAuthority','European Commission');set(card,'referenceSource',chosen.source);set(card,'metal',chosen.composition||'');set(card,'weight',chosen.weight||'');set(card,'diameter',chosen.diameter||'');set(card,'confidence',seriesScore>=12?'High':'Medium');set(card,'status','Public-reference match — verify photo');}
+ if(two){set(card,'researchPriority',two.researchPriority);set(card,'researchReason',two.researchReason);set(card,'referenceAuthority',two.referenceAuthority);set(card,'referenceSource',two.referenceSource);if(two.coinType)set(card,'coinType',two.coinType);}
+ else if(chosen){set(card,'researchPriority',chosen.researchPriority||'Normal');set(card,'researchReason',chosen.researchReason||'Regular euro circulation type; verify year and national-side design.');}
+}
+const records=document.querySelector('#records');
+records?.addEventListener('click',e=>{const b=e.target.closest('button[data-action="verify-reference"]');if(!b)return;const id=b.closest('.record-card')?.querySelector('.record-id')?.textContent;queueMicrotask(()=>{const card=[...document.querySelectorAll('.record-card')].find(c=>c.querySelector('.record-id')?.textContent===id);enrichEuroCard(card);});});
+
+function appendSheet(wb,name,rows){if(!globalThis.XLSX||!rows?.length||wb.SheetNames.includes(name))return;const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=Object.keys(rows[0]).map(k=>({wch:Math.min(60,Math.max(14,k.length+2))}));XLSX.utils.book_append_sheet(wb,ws,name);}
+if(globalThis.XLSX?.writeFile){const original=XLSX.writeFile.bind(XLSX);XLSX.writeFile=(wb,...args)=>{appendSheet(wb,'EU Euro Circulation',euroReferenceRows());appendSheet(wb,'EU National Series',euroSeriesRows());appendSheet(wb,'EU €2 Commemorative',euroCommemorativeRows());return original(wb,...args);};}
+const status=document.querySelector('#reference-db-status');
+if(status){const a=euroReferenceStats(),b=euroSeriesStats();const update=()=>{if(!status.textContent.includes('EU euro coverage'))status.textContent+=` EU euro coverage: ${a.issuers} issuers × ${a.denominations} denominations (${a.records} circulation references), plus ${b.series} national-side series.`;};if(status.textContent)update();else setTimeout(update,0);}
