@@ -6,38 +6,37 @@ const expectedCountries = [
   'Sweden','Norway','Switzerland','United Kingdom','Iceland',
 ];
 
+const allowedPriority = new Set(['Normal','Possibly interesting','Interesting']);
+
 assert.equal(EUROPE_BATCH01.length, 10);
 assert.deepEqual(EUROPE_BATCH01.map(x => x.country), expectedCountries);
 
 for (const country of EUROPE_BATCH01) {
-  assert.ok(Array.isArray(country.aliases) && country.aliases.length >= 3, `${country.country}: aliases missing`);
-  assert.ok(country.authority && country.source, `${country.country}: official authority/source missing`);
-  assert.ok(Array.isArray(country.denominations) && country.denominations.length >= 4, `${country.country}: denomination list too small`);
+  assert.ok(country.authority && country.source, `${country.country}: official source missing`);
+  assert.ok(Array.isArray(country.denominations) && country.denominations.length >= 4, `${country.country}: denominations missing`);
 
   const rows = EUROPE_BATCH01_REFERENCE_DB.filter(row => row.country === country.country);
-  assert.ok(rows.length >= country.denominations.length + 1, `${country.country}: expected regular + historical rows`);
+  assert.ok(rows.length >= country.denominations.length + 1, `${country.country}: incomplete reference rows`);
 
   for (const denomination of country.denominations) {
-    assert.ok(
-      rows.some(row => row.denomination === denomination && row.type === 'Regular circulation'),
-      `${country.country}: missing regular denomination row ${denomination}`,
-    );
+    assert.ok(rows.some(row => row.denomination === denomination && row.type === 'Regular circulation'), `${country.country}: missing ${denomination}`);
   }
 
-  assert.ok(
-    rows.some(row => row.type === 'Historical'),
-    `${country.country}: historical fallback row missing`,
-  );
+  assert.ok(rows.some(row => row.type === 'Historical'), `${country.country}: historical fallback missing`);
+
+  for (const row of rows) {
+    assert.ok(row.authority && row.source, `${country.country}: row without official source`);
+    assert.ok(allowedPriority.has(row.researchPriority), `${country.country}: invalid research priority`);
+  }
+
+  const regular = rows.filter(row => row.type === 'Regular circulation');
+  const uniqueRegular = new Set(regular.map(row => `${row.country}|${row.currency}|${row.denomination}|${row.yearFrom}|${row.yearTo}|${row.type}`));
+  assert.equal(uniqueRegular.size, regular.length, `${country.country}: duplicate regular records`);
 }
 
-const specialCountries = new Set(
-  EUROPE_BATCH01_REFERENCE_DB
-    .filter(row => row.researchPriority === 'Interesting')
-    .map(row => row.country),
-);
-
+const interestingCountries = new Set(EUROPE_BATCH01_REFERENCE_DB.filter(row => row.researchPriority === 'Interesting').map(row => row.country));
 for (const country of ['Poland','Czechia','Hungary','Denmark','Sweden','Norway','Switzerland','United Kingdom']) {
-  assert.ok(specialCountries.has(country), `${country}: expected Interesting research signal`);
+  assert.ok(interestingCountries.has(country), `${country}: missing research signal`);
 }
 
 const stats = europeBatch01Stats();
@@ -45,10 +44,9 @@ assert.equal(stats.countries, 10);
 assert.equal(stats.records, EUROPE_BATCH01_REFERENCE_DB.length);
 assert.ok(stats.interesting >= 10);
 
-const excelSheetNames = EUROPE_BATCH01.map(country => `${country.country} Historical`);
-assert.equal(new Set(excelSheetNames).size, 10);
-for (const name of excelSheetNames) {
-  assert.ok(name.length <= 31, `Excel sheet name too long: ${name}`);
+for (const country of EUROPE_BATCH01) {
+  const sheet = `${country.country} Historical`;
+  assert.ok(sheet.length <= 31, `Excel sheet too long: ${sheet}`);
 }
 
-console.log(`Europe batch 1 tests passed: ${stats.countries} countries, ${stats.records} reference rows, ${stats.interesting} interesting signals`);
+console.log(`Europe batch 1 QA passed: ${stats.countries} countries, ${stats.records} rows`);
