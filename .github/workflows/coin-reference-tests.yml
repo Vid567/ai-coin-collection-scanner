@@ -36,7 +36,7 @@ jobs:
             ['coin-world08-africa.js','coin-world07-latam-caribbean.js'],
             ['coin-world09-issuers-territories.js','coin-world08-africa.js'],
             ['coin-world10-historical-issuers.js','coin-world09-issuers-territories.js'],
-            ['coin-world11-historical-series.js','coin-world10-historical.js'],
+            ['coin-world11-historical-series.js','coin-world10-historical-issuers.js'],
             ['coin-world12-historical-series.js','coin-world11-historical-series.js'],
             ['coin-world13-historical-series.js','coin-world12-historical-series.js'],
             ['coin-world14-historical-series.js','coin-world13-historical-series.js'],
