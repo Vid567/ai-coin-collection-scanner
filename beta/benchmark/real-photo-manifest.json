@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "status": "ASSETS_PENDING",
+  "purpose": "Ground-truth benchmark for real user-style coin photographs. Do not publish performance percentages until cases have licensed image assets and measured outputs.",
+  "assetDirectory": "beta/benchmark/assets/",
+  "thresholds": {
+    "detectionRecallMin": 0.90,
+    "falsePositivesPerImageMax": 0.50,
+    "pairingAccuracyMin": 0.95,
+    "ocrTokenRecallMin": 0.60,
+    "referenceMatchAccuracyMin": 0.90
+  },
+  "cases": [
+    {"id":"single-clear","asset":null,"scenario":"single coin, clean background, straight overhead","groundTruth":{"coinCount":1,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"group-clear","asset":null,"scenario":"multiple separated coins on plain background","groundTruth":{"coinCount":6,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"group-front-back","asset":null,"reverseAsset":null,"scenario":"same six coins front/back in approximately unchanged positions","groundTruth":{"coinCount":6,"boxes":[],"reverseBoxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"mixed-sizes","asset":null,"scenario":"small and large denominations in one image","groundTruth":{"coinCount":8,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"busy-background","asset":null,"scenario":"coins on a visually busy but realistic household surface","groundTruth":{"coinCount":5,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"low-contrast","asset":null,"scenario":"silver-coloured coins on light background","groundTruth":{"coinCount":5,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"angled-photo","asset":null,"scenario":"moderate perspective angle rather than perfect overhead","groundTruth":{"coinCount":5,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"partial-overlap","asset":null,"scenario":"some coins partially overlap; expected to expose limitations","groundTruth":{"coinCount":5,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"worn-historical","asset":null,"scenario":"worn older coin with weak legends","groundTruth":{"coinCount":1,"boxes":[],"pairs":[],"ocrTokens":[],"referenceTypes":[]},"measured":false},
+    {"id":"modern-readable","asset":null,"scenario":"modern coin with clearly visible year and denomination","groundTruth":{"coinCount":1,"boxes":[],"pairs":[],"ocrTokens":["year","denomination"],"referenceTypes":[]},"measured":false}
+  ]
+}
