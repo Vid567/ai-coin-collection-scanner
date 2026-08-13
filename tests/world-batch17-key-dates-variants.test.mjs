@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {WORLD_BATCH17_KEY_DATES_VARIANTS as S,worldBatch17Stats as stats,worldBatch17ExcelRows as excel} from '../beta/world-batch17-key-dates-variants.mjs';
+test('world17 is targeted depth rather than geographic breadth',()=>{assert.ok(S.length>=10);assert.ok(new Set(S.map(x=>x.issuer)).size<=3)});
+test('Morgan and Peace transition/key-date targets are explicit',()=>{for(const q of ['1893-S','1895','1921 Morgan','1921 Peace','1928 Peace'])assert.ok(S.some(x=>x.series.includes(q)),q)});
+test('mint distinctions are retained',()=>{assert.ok(S.some(x=>x.mintMarks==='S'));assert.ok(S.some(x=>x.mintMarks.includes('D')))});
+test('Sovereign portrait and issue transitions are explicit',()=>{for(const q of ['Edward VII','George V','1937 George VI','Elizabeth II'])assert.ok(S.some(x=>x.series.includes(q)),q)});
+test('verified sovereign standard is retained',()=>{for(const r of S.filter(x=>x.denomination==='Sovereign')){assert.equal(r.weight,7.98);assert.equal(r.diameter,22.05);assert.match(r.metal,/22 carat gold/)}});
+test('US physical values remain blank when not established by selected source',()=>{for(const r of S.filter(x=>x.issuer==='United States')){assert.equal(r.weight,null);assert.equal(r.diameter,null)}});
+test('all rows have provenance and high collector priority',()=>assert.ok(S.every(x=>/^https:\/\//.test(x.source)&&x.priority==='High')));
+test('Excel projection preserves key-date fields',()=>{const rows=excel();assert.equal(rows.length,S.length);assert.ok(rows.every(r=>r['Key Date / Variant']&&r['Mint Marks']&&r['Official / Institutional Source']))});
+test('world17 chains world16 and exports key-date sheet',()=>{const t=fs.readFileSync(new URL('../beta/coin-world17-key-dates-variants.js',import.meta.url),'utf8');assert.match(t,/coin-world16-high-value-collector-depth\.js/);assert.match(t,/Key Dates Variants/)});
+test('English beta terminates at world17',()=>assert.match(fs.readFileSync(new URL('../beta/index.html',import.meta.url),'utf8'),/coin-world17-key-dates-variants\.js/));
+test('stats consistent',()=>{const s=stats();assert.equal(s.series,S.length);assert.equal(s.sourceVerified,S.length);assert.equal(s.highPriority,S.length)});
