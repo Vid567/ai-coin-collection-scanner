@@ -24,7 +24,7 @@ jobs:
 
       - name: Run stable regression tests
         run: |
-          node --test tests/core.test.mjs tests/reference.test.mjs tests/detection-quality.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-batch16-high-value-collector.test.mjs tests/world-batch17-key-dates-variants.test.mjs tests/world-batch18-historical-key-dates.test.mjs tests/world-batch19-final-gap-closer.test.mjs tests/world-chain-current.test.mjs
+          node --test tests/core.test.mjs tests/reference.test.mjs tests/detection-quality.test.mjs tests/quality.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-batch16-high-value-collector.test.mjs tests/world-batch17-key-dates-variants.test.mjs tests/world-batch18-historical-key-dates.test.mjs tests/world-batch19-final-gap-closer.test.mjs tests/world-chain-current.test.mjs
 
       - name: Verify frozen world module chain
         run: |
