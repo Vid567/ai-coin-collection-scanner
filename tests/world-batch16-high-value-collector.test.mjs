@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {WORLD_BATCH16_HIGH_VALUE_COLLECTOR as S,worldBatch16HighValueStats as stats,worldBatch16HighValueExcelRows as excel} from '../beta/world-batch16-high-value-collector-depth.mjs';
+test('world16 adds substantial targeted collector depth',()=>assert.ok(S.length>=16));
+test('Victoria sovereign portrait transitions are separated',()=>{for(const q of ['Young Head','Jubilee Head','Old / Veiled Head'])assert.ok(S.some(x=>x.series.includes(q)),q)});
+test('sovereign physical specifications are exact where supplied',()=>{for(const r of S.filter(x=>x.denomination==='Sovereign')){assert.equal(r.weight,7.98);assert.equal(r.diameter,22.05);assert.match(r.metal,/22 carat gold/)}});
+test('branch mint marks include Melbourne and Sydney',()=>{assert.ok(S.some(x=>x.mintMarks==='M'));assert.ok(S.some(x=>x.mintMarks==='S'))});
+test('1907 Saint-Gaudens transition variants are represented',()=>assert.ok(S.filter(x=>x.series.includes('Saint-Gaudens')).length>=4));
+test('unknown physical values are not fabricated',()=>{const r=S.find(x=>x.series.includes('Ultra High Relief 34'));assert.equal(r.weight,null);assert.equal(r.diameter,34)});
+test('all entries retain official source provenance',()=>assert.ok(S.every(x=>/^https:\/\//.test(x.source))));
+test('Excel rows preserve collector fields',()=>{const rows=excel();assert.equal(rows.length,S.length);assert.ok(rows.every(r=>r['Official Source']&&r.Variants&&r.Status))});
+test('world16 chains world15 and exports collector sheet',()=>{const t=fs.readFileSync(new URL('../beta/coin-world16-high-value-collector-depth.js',import.meta.url),'utf8');assert.match(t,/coin-world15-top-collector-series\.js/);assert.match(t,/High Value Collector/)});
+test('English beta terminates at world16',()=>assert.match(fs.readFileSync(new URL('../beta/index.html',import.meta.url),'utf8'),/coin-world16-high-value-collector-depth\.js/));
+test('stats consistent',()=>{const s=stats();assert.equal(s.series,S.length);assert.equal(s.sourceVerified,S.length);assert.ok(s.fullySpecified>=7)});
