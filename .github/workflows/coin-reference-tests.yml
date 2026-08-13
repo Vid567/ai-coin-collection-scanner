@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install real-photo benchmark dependencies
+        run: pip install pillow numpy
+
       - name: Run stable regression tests
         run: |
           node --test tests/core.test.mjs tests/reference.test.mjs tests/detection-quality.test.mjs tests/quality.test.mjs tests/ocr-quality.test.mjs tests/photo-benchmark.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-batch16-high-value-collector.test.mjs tests/world-batch17-key-dates-variants.test.mjs tests/world-batch18-historical-key-dates.test.mjs tests/world-batch19-final-gap-closer.test.mjs tests/world-chain-current.test.mjs
@@ -36,6 +44,9 @@ jobs:
           console.log(JSON.stringify({report,gate},null,2));
           if(gate.passed===false)process.exit(1);
           NODE
+
+      - name: Run real-photo detector baseline
+        run: python scripts/real_photo_detector_smoke.py
 
       - name: Verify frozen world module chain
         run: |
