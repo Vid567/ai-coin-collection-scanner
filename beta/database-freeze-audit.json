@@ -1,0 +1,42 @@
+{
+  "auditVersion": "1.0",
+  "browserBeta": "v3.1",
+  "frozenAtLayer": "world19",
+  "decision": "FREEZE",
+  "scope": {
+    "geographicIssuerCoverage": "complete for intended Browser Beta world coverage",
+    "territoryAndSpecialIssuerCoverage": "complete for intended Browser Beta scope",
+    "historicalIssuerCoverage": "major historical issuers covered",
+    "historicalCoinFamilies": "major globally relevant families covered",
+    "collectorKeyDateCoverage": "strong selective coverage; intentionally non-exhaustive",
+    "physicalSpecificationsPolicy": "exact values only when supported by selected official/institutional sources; otherwise blank",
+    "researchRouting": "institutional/public research source retained for long-tail follow-up"
+  },
+  "finalGapCloser": {
+    "layer": "world19",
+    "purpose": "close remaining material historical-family gaps without starting exhaustive issue-level cataloguing",
+    "familiesAdded": ["Ancient Roman imperial", "Byzantine", "Ancient Greek silver", "Spanish-American 8 reales", "British Sovereign branch mints", "French colonial", "Straits/Malaya", "Ottoman reform era", "Latin-American independence transitions", "German thaler-to-mark", "Meiji Japan", "late-Qing/Republic China"]
+  },
+  "auditChecks": {
+    "geographicCoverage": "PASS",
+    "issuerTerritoryCoverage": "PASS",
+    "majorHistoricalFamilies": "PASS after world19 gap closure",
+    "collectorKeyDates": "PASS for selective Beta objective",
+    "sourceProvenance": "PASS by dataset policy; official/institutional URLs required for depth layers",
+    "guessedPhysicalValues": "PASS policy: prohibited; blanks preferred",
+    "matcherChain": "PASS target world06-world19 continuous chain",
+    "excelExport": "PASS target: dedicated depth sheets plus inventory export",
+    "duplicatesConflicts": "no material blocker identified; overlapping family/detail layers are intentional progressive enrichment"
+  },
+  "nonCriticalLongTailGaps": [
+    "individual ancient rulers, cities, officina and minor legend variants",
+    "every colonial mint/assayer/date combination",
+    "every NUMIS/RBI/OeNB museum object record",
+    "minor die, overdate and repunch varieties",
+    "exhaustive annual circulation issues already adequately routed by issuer/family",
+    "commercial rarity/value catalogue data"
+  ],
+  "freezeRule": "Do not create world20+ solely to expand long-tail catalogue depth. Reopen reference database only for a demonstrated material recognition gap, authoritative correction, or regression.",
+  "nextProductPriority": ["photo/object detection accuracy", "front-back pairing", "OCR/visible-text extraction", "reference matching confidence", "real-photo regression set", "user-facing research routing"],
+  "status": "DATABASE FROZEN FOR BROWSER BETA"
+}
