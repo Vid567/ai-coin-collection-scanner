@@ -8,5 +8,5 @@ test('US physical values remain blank when not established by selected source',(
 test('all rows have provenance and high collector priority',()=>assert.ok(S.every(x=>/^https:\/\//.test(x.source)&&x.priority==='High')));
 test('Excel projection preserves key-date fields',()=>{const rows=excel();assert.equal(rows.length,S.length);assert.ok(rows.every(r=>r['Key Date / Variant']&&r['Mint Marks']&&r['Official / Institutional Source']))});
 test('world17 chains world16 and exports key-date sheet',()=>{const t=fs.readFileSync(new URL('../beta/coin-world17-key-dates-variants.js',import.meta.url),'utf8');assert.match(t,/coin-world16-high-value-collector-depth\.js/);assert.match(t,/Key Dates Variants/)});
-test('English beta terminates at world17',()=>assert.match(fs.readFileSync(new URL('../beta/index.html',import.meta.url),'utf8'),/coin-world17-key-dates-variants\.js/));
+test('world17 remains in active chain after later depth layers',()=>{const t=fs.readFileSync(new URL('../beta/coin-world18-historical-key-dates.js',import.meta.url),'utf8');assert.match(t,/coin-world17-key-dates-variants\.js/)});
 test('stats consistent',()=>{const s=stats();assert.equal(s.series,S.length);assert.equal(s.sourceVerified,S.length);assert.equal(s.highPriority,S.length)});
