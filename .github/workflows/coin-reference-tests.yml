@@ -24,4 +24,4 @@ jobs:
 
       - name: Run regression tests
         run: |
-          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-coverage.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch06-oceania.test.mjs tests/world-batch07-latam-caribbean.test.mjs tests/world-batch08-africa.test.mjs tests/world-batch09-issuers-territories.test.mjs
+          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-coverage.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch06-oceania.test.mjs tests/world-batch07-latam-caribbean.test.mjs tests/world-batch08-africa.test.mjs tests/world-batch09-issuers-territories.test.mjs tests/world-batch10-historical-issuers.test.mjs
