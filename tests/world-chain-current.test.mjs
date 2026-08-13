@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 const index=fs.readFileSync(new URL('../beta/index.html',import.meta.url),'utf8');
-const m=index.match(/src="(coin-world\d+[^\"]*\.js)"/);assert.ok(m,'English scanner must load a world-chain entry module');
-const entry=m[1];
-test('English scanner uses frozen world19 entry',()=>assert.equal(entry,'coin-world19-final-gap-closer.js'));
+const script=index.match(/src="(coin-[^\"]+\.js)"/);assert.ok(script,'English scanner must load a coin entry module');
+let entry=script[1];const wrappers=[];for(let i=0;i<8&&!entry.startsWith('coin-world');i++){wrappers.push(entry);const text=fs.readFileSync(new URL(`../beta/${entry}`,import.meta.url),'utf8');const parent=text.match(/import ['"]\.\/(coin-[^'"]+\.js)['"]/);assert.ok(parent,`${entry} must preserve the scanner chain`);entry=parent[1];}
+test('English scanner preserves frozen world19 entry beneath quality wrappers',()=>{assert.equal(entry,'coin-world19-final-gap-closer.js');assert.ok(wrappers.includes('coin-ocr.js'))});
 test('world chain reaches every historical/geographic layer through freeze',()=>{let file=entry;const seen=new Set();for(let i=0;i<30;i++){seen.add(file);const text=fs.readFileSync(new URL(`../beta/${file}`,import.meta.url),'utf8');const parent=text.match(/import ['"]\.\/(coin-world\d+[^'"]*\.js)['"]/);if(!parent)break;file=parent[1]}for(const n of [6,7,8,9,10,11,12,13,14,15,16,17,18,19])assert.ok([...seen].some(x=>x.startsWith(`coin-world${String(n).padStart(2,'0')}`)),`world${n} missing from active chain`)});
 test('database freeze audit is explicit',()=>{const a=JSON.parse(fs.readFileSync(new URL('../beta/database-freeze-audit.json',import.meta.url),'utf8'));assert.equal(a.decision,'FREEZE');assert.equal(a.frozenAtLayer,'world19');assert.match(a.status,/FROZEN/);assert.ok(a.nonCriticalLongTailGaps.length>0)});
