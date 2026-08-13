@@ -22,6 +22,26 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run regression tests
+      - name: Run stable regression tests
         run: |
-          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-coverage.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch06-oceania.test.mjs tests/world-batch07-latam-caribbean.test.mjs tests/world-batch08-africa.test.mjs tests/world-batch09-issuers-territories.test.mjs tests/world-batch10-historical-issuers.test.mjs tests/world-batch11-historical-series.test.mjs tests/world-batch12-historical-series.test.mjs tests/world-batch13-historical-series.test.mjs tests/world-batch14-historical-series.test.mjs tests/world-batch15-top-collector-series.test.mjs
+          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-chain-current.test.mjs
+
+      - name: Verify intermediate world modules load
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const pairs=[
+            ['coin-world06-oceania.js','coin-world05-asia.js'],
+            ['coin-world07-latam-caribbean.js','coin-world06-oceania.js'],
+            ['coin-world08-africa.js','coin-world07-latam-caribbean.js'],
+            ['coin-world09-issuers-territories.js','coin-world08-africa.js'],
+            ['coin-world10-historical-issuers.js','coin-world09-issuers-territories.js'],
+            ['coin-world11-historical-series.js','coin-world10-historical.js'],
+            ['coin-world12-historical-series.js','coin-world11-historical-series.js'],
+            ['coin-world13-historical-series.js','coin-world12-historical-series.js'],
+            ['coin-world14-historical-series.js','coin-world13-historical-series.js'],
+            ['coin-world15-top-collector-series.js','coin-world14-historical-series.js']
+          ];
+          for(const [child,parent] of pairs){const text=fs.readFileSync(`beta/${child}`,'utf8');if(!text.includes(parent))throw new Error(`${child} does not chain ${parent}`)}
+          console.log(`Verified ${pairs.length} world-chain links`);
+          NODE
