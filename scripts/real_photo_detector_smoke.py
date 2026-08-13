@@ -1,4 +1,4 @@
-import io,json,math,urllib.request
+import io,json,urllib.request
 from PIL import Image
 import numpy as np
 
@@ -13,8 +13,7 @@ def fetch(url):
  with urllib.request.urlopen(req,timeout=30) as r:return r.read()
 
 def boxsum(ii,r):
- h,w=ii.shape[0]-1,ii.shape[1]-1
- ys=np.arange(h)[:,None];xs=np.arange(w)[None,:]
+ h,w=ii.shape[0]-1,ii.shape[1]-1;ys=np.arange(h)[:,None];xs=np.arange(w)[None,:]
  y0=np.maximum(0,ys-r);y1=np.minimum(h-1,ys+r);x0=np.maximum(0,xs-r);x1=np.minimum(w-1,xs+r)
  return ii[y1+1,x1+1]-ii[y0,x1+1]-ii[y1+1,x0]+ii[y0,x0],(y1-y0+1)*(x1-x0+1)
 
@@ -23,12 +22,11 @@ def binary_window(mask,r,mode):
  return (s>0) if mode=='dilate' else (s>=n)
 
 def morph(mask,r):
- out=mask
- for _ in range(2):out=binary_window(binary_window(out,r,'dilate'),r,'erode')
- return binary_window(binary_window(out,r,'erode'),r,'dilate')
+ out=binary_window(mask,r,'dilate');out=binary_window(out,r,'erode')
+ rr=max(1,r//2);out=binary_window(out,rr,'erode');out=binary_window(out,rr,'dilate');return out
 
 def candidate_score(w,h,fill):
- aspect=min(w/h,h/w);a=max(0,min(1,(aspect-.58)/.42));f=max(0,min(1,(fill-.5)/.32));return .58*a+.42*f
+ aspect=min(w/h,h/w);a=max(0,min(1,(aspect-.48)/.52));f=max(0,min(1,(fill-.32)/.45));return .62*a+.38*f
 
 def components(mask):
  h,w=mask.shape;seen=np.zeros_like(mask,bool);out=[];area_all=w*h
@@ -44,9 +42,9 @@ def components(mask):
       qx,qy=x+dx,y+dy
       if 0<=qx<w and 0<=qy<h and mask[qy,qx] and not seen[qy,qx]:seen[qy,qx]=1;stack.append((qx,qy))
    xs=[p[0] for p in pts];ys=[p[1] for p in pts];bw=max(xs)-min(xs)+1;bh=max(ys)-min(ys)+1;fill=len(pts)/(bw*bh);share=len(pts)/area_all;aspect=bw/bh
-   if share<.0045 or share>.30 or aspect<.52 or aspect>1.92 or fill<.48:continue
+   if share<.0025 or share>.72 or aspect<.45 or aspect>2.20 or fill<.30:continue
    score=candidate_score(bw,bh,fill)
-   if score>=.28:out.append((min(xs),min(ys),bw,bh,score))
+   if score>=.24:out.append((min(xs),min(ys),bw,bh,score))
  return out
 
 def iou(a,b):
@@ -59,9 +57,12 @@ def nms(items,t=.42):
   if all(iou(item,k)<t for k in kept):kept.append(item)
  return kept
 
+def corner_background(a):
+ h,w,_=a.shape;sx=max(2,round(w*.08));sy=max(2,round(h*.08));chunks=[a[0:sy:2,0:sx:2],a[0:sy:2,w-sx:w:2],a[h-sy:h:2,0:sx:2],a[h-sy:h:2,w-sx:w:2]];s=np.concatenate([c.reshape(-1,3) for c in chunks]);return np.median(s,axis=0)
+
 def detect(blob,maxdim=700):
  im=Image.open(io.BytesIO(blob)).convert('RGB');sw,sh=im.size;scale=min(1,maxdim/max(sw,sh));w=max(1,round(sw*scale));h=max(1,round(sh*scale));im=im.resize((w,h));a=np.asarray(im).astype(np.float32);gray=.299*a[:,:,0]+.587*a[:,:,1]+.114*a[:,:,2];sat=a.max(2)-a.min(2);r=max(24,round(min(w,h)*.08))
- gi=np.pad(gray,((1,0),(1,0))).cumsum(0).cumsum(1);si=np.pad(sat,((1,0),(1,0))).cumsum(0).cumsum(1);gs,n=boxsum(gi,r);ss,_=boxsum(si,r);mask=(np.abs(gs/n-gray)>10)|(np.abs(sat-ss/n)>18);mr=max(2,round(min(w,h)*.005));return nms(components(morph(mask,mr)))
+ gi=np.pad(gray,((1,0),(1,0))).cumsum(0).cumsum(1);si=np.pad(sat,((1,0),(1,0))).cumsum(0).cumsum(1);gs,n=boxsum(gi,r);ss,_=boxsum(si,r);bg=corner_background(a);bgdist=np.sqrt(((a-bg)**2).sum(2));mask=(np.abs(gs/n-gray)>8)|(np.abs(sat-ss/n)>14)|(bgdist>34);mr=max(1,round(min(w,h)*.0035));return nms(components(morph(mask,mr)))
 
 rows=[]
 for case in CASES:
@@ -70,6 +71,5 @@ for case in CASES:
   if case['expected'] is not None:row['countError']=len(boxes)-case['expected'];row['countExact']=len(boxes)==case['expected']
  except Exception as e:row={**case,'error':str(e)}
  rows.append(row)
-print(json.dumps({'status':'REAL_PHOTO_BASELINE','cases':rows},indent=2))
-# report-only baseline: fail only when no image could be downloaded/tested
+print(json.dumps({'status':'REAL_PHOTO_BASELINE','detectorRevision':'background-fallback-v2','cases':rows},indent=2))
 if not any('detected' in r for r in rows):raise SystemExit(1)
