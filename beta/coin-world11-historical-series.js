@@ -1,4 +1,4 @@
-import './coin-world10-historical.js';
+import './coin-world10-historical-issuers.js';
 import {WORLD_BATCH11_HISTORICAL_SERIES as SERIES,worldBatch11HistoricalSeriesStats as stats,worldBatch11HistoricalSeriesExcelRows as excelRows} from './world-batch11-historical-series-depth.mjs';
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const yearOf=v=>{const m=String(v||'').match(/(?:1[5-9]|20)\d{2}/);return m?Number(m[0]):null};
