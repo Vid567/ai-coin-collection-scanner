@@ -24,7 +24,7 @@ jobs:
 
       - name: Run stable regression tests
         run: |
-          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-batch16-high-value-collector.test.mjs tests/world-chain-current.test.mjs
+          node --test tests/core.test.mjs tests/reference.test.mjs tests/europe-batch01.test.mjs tests/europe-batch02.test.mjs tests/europe-batch03.test.mjs tests/europe-depth.test.mjs tests/world-batch04.test.mjs tests/world-batch05-asia.test.mjs tests/world-batch15-top-collector-series.test.mjs tests/world-batch16-high-value-collector.test.mjs tests/world-batch17-key-dates-variants.test.mjs tests/world-chain-current.test.mjs
 
       - name: Verify intermediate world modules load
         run: |
@@ -41,7 +41,8 @@ jobs:
             ['coin-world13-historical-series.js','coin-world12-historical-series.js'],
             ['coin-world14-historical-series.js','coin-world13-historical-series.js'],
             ['coin-world15-top-collector-series.js','coin-world14-historical-series.js'],
-            ['coin-world16-high-value-collector-depth.js','coin-world15-top-collector-series.js']
+            ['coin-world16-high-value-collector-depth.js','coin-world15-top-collector-series.js'],
+            ['coin-world17-key-dates-variants.js','coin-world16-high-value-collector-depth.js']
           ];
           for(const [child,parent] of pairs){const text=fs.readFileSync(`beta/${child}`,'utf8');if(!text.includes(parent))throw new Error(`${child} does not chain ${parent}`)}
           console.log(`Verified ${pairs.length} world-chain links`);
