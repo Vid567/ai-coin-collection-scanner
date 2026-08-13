@@ -1,0 +1,10 @@
+:root{--navy:#14365e;--blue:#41b6e6;--interactive-blue:#2369a8;--light:#eef5fb;--ink:#172033;--muted:#607087;--line:#d7e0ea}
+body{background:#f6f8fb;color:var(--ink)}
+.brand{color:var(--navy)}.coin-mark{color:var(--blue)}.beta{background:var(--light);color:var(--navy)}
+.eyebrow,.section-head span,.crop-card strong{color:var(--interactive-blue)}
+.panel{border-color:var(--line);box-shadow:0 8px 24px #14365e0a}
+.button.primary{background:var(--navy);color:#fff}.button.secondary,.record-actions button{background:var(--light);color:var(--navy)}
+.button.ghost{border-color:var(--line);color:var(--navy)}
+.empty,.group-builder{background:#f9fbfd;border-color:var(--line)}
+.detection-summary,.limits{background:var(--light);color:var(--navy)}.pair-option{color:var(--navy)}
+:focus-visible{outline:3px solid rgba(65,182,230,.65);outline-offset:3px}
