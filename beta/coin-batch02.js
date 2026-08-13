@@ -1,4 +1,5 @@
 import './coin-euro.js';
+import './research-links.js';
 import { EUROPE_BATCH02, EUROPE_BATCH02_REFERENCE_DB, europeBatch02Stats } from './europe-batch02-reference.mjs';
 
 const norm = value => String(value || '')
