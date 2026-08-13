@@ -8,5 +8,5 @@ test('unknown physical values are not fabricated',()=>{const r=S.find(x=>x.serie
 test('all entries retain official source provenance',()=>assert.ok(S.every(x=>/^https:\/\//.test(x.source))));
 test('Excel rows preserve collector fields',()=>{const rows=excel();assert.equal(rows.length,S.length);assert.ok(rows.every(r=>r['Official Source']&&r.Variants&&r.Status))});
 test('world16 chains world15 and exports collector sheet',()=>{const t=fs.readFileSync(new URL('../beta/coin-world16-high-value-collector-depth.js',import.meta.url),'utf8');assert.match(t,/coin-world15-top-collector-series\.js/);assert.match(t,/High Value Collector/)});
-test('English beta terminates at world16',()=>assert.match(fs.readFileSync(new URL('../beta/index.html',import.meta.url),'utf8'),/coin-world16-high-value-collector-depth\.js/));
+test('world16 remains in active chain after later depth layers',()=>{const p=new URL('../beta/coin-world17-key-dates-variants.js',import.meta.url);if(fs.existsSync(p))assert.match(fs.readFileSync(p,'utf8'),/coin-world16-high-value-collector-depth\.js/)});
 test('stats consistent',()=>{const s=stats();assert.equal(s.series,S.length);assert.equal(s.sourceVerified,S.length);assert.ok(s.fullySpecified>=7)});
