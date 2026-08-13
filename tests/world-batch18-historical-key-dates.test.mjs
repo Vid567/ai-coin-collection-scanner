@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {WORLD_BATCH18_HISTORICAL_KEY_DATES as S,worldBatch18HistoricalKeyDateStats as stats,worldBatch18HistoricalKeyDateExcelRows as excel} from '../beta/world-batch18-historical-key-dates-depth.mjs';
+test('world18 focuses on existing historical families',()=>{for(const q of ['Habsburg Austria','Russian Empire','East India Company India','Netherlands East Indies'])assert.ok(S.some(x=>x.issuer.includes(q)),q)});
+test('OeNB rare key pieces include exact highlighted years',()=>{for(const y of [1504,1629,1790,1938])assert.ok(S.some(x=>x.yearFrom===y),String(y))});
+test('Nicholas I family rubles preserve official mintages and specifications',()=>{const a=S.find(x=>x.yearFrom===1835&&x.denomination==='1.5 Rubles');const b=S.find(x=>x.yearFrom===1836&&x.denomination==='1.5 Rubles');assert.equal(a.mintage,36);assert.equal(b.mintage,200);for(const r of [a,b]){assert.equal(r.weight,31.14);assert.equal(r.diameter,40);assert.match(r.metal,/868/)}});
+test('Peter the Great first regular ruble is represented',()=>assert.ok(S.some(x=>x.yearFrom===1704&&x.series.includes('first regular ruble'))));
+test('RBI Company Rupee transition is represented',()=>assert.ok(S.some(x=>x.yearFrom===1835&&x.issuer==='East India Company India')));
+test('Sher Shah standards carry source-backed weights',()=>{assert.ok(S.some(x=>x.denomination==='Rupiya'&&x.weight>11));assert.ok(S.some(x=>x.denomination==='Mohur'&&x.weight>10))});
+test('Netherlands East Indies remains conservative without invented specs',()=>{const r=S.find(x=>x.issuer==='Netherlands East Indies');assert.equal(r.weight,null);assert.equal(r.diameter,null)});
+test('Excel projection retains mintage and institutional source',()=>{const rows=excel();assert.equal(rows.length,S.length);assert.ok(rows.every(r=>r['Official / Institutional Source']&&r.Status));assert.ok(rows.some(r=>r.Mintage===36))});
+test('world18 chains world17 and exports Historical Key Dates',()=>{const t=fs.readFileSync(new URL('../beta/coin-world18-historical-key-dates.js',import.meta.url),'utf8');assert.match(t,/coin-world17-key-dates-variants\.js/);assert.match(t,/Historical Key Dates/)});
+test('stats consistent',()=>{const s=stats();assert.equal(s.records,S.length);assert.ok(s.withMintage>=3);assert.ok(s.fullySpecified>=2)});
